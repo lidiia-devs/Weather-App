@@ -11,6 +11,9 @@ struct ContentView: View {
     @State private var searchText = ""
     @State private var weatherObject: WeatherObject?
     
+    @State private var persistedCiries: [String]?
+    @State private var showPersistedCities: Bool = false // to control if saved city
+    
     @State private var isLoading: Bool = false
     @State private var errorMessage: String? = nil
     
@@ -20,13 +23,18 @@ struct ContentView: View {
                 HStack {
                     TextField("Search Location", text: $searchText, onEditingChanged: { isEditing in
                         if isEditing {
-                          
+                          loadPersistedCities()
+                            showPersistedCities = !(persistedCiries?.isEmpty ?? true)
+                        } else {
+                            showPersistedCities = true
                         }
                     })
                     .textFieldStyle(.automatic)
                     .padding(.leading)
                     .font(Font.custom("Poppins-Regular", size: 16))
-                  
+                    .onChange(of: searchText) { newValue in
+                        showPersistedCities = true //!newValue.isEmpty && !(persistedCiries?.isEmpty ?? true)
+                    }
                     
                     
                     Button(action: {
@@ -52,7 +60,7 @@ struct ContentView: View {
             WeatherView(weather: weather)
             //fill in wirh weather app object
             Text(weather.tempFahrenheit?.asDisplayString() ?? "N/A")
-            Text(weather.tempCelcius?.asDisplayString() ?? "N/A")
+           // Text(weather.tempCelcius?.asDisplayString() ?? "N/A")
         } else if let error = errorMessage {
             Text(error)
                 .foregroundColor(.red)
@@ -105,5 +113,14 @@ struct ContentView: View {
         }
         
     }
+    
+    private func saveCity(_ city: String) {
+        var cities = UserDefaults.standard.stringArray(forKey: "persistedCities") ?? []
+        if !cities.contains(city) {
+            cities.append(city)
+            UserDefaults.standard.set(cities, forKey: "persistedCities")
+        }
+    }
+    
 
 }
